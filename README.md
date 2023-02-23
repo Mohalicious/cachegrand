@@ -3,7 +3,7 @@
 ![Lines of code](https://badges.cachegrand.io/svg/ssc-total-lines.svg)
 [![COCOMO](https://badges.cachegrand.io/svg/ssc-cocomo.svg)](https://en.wikipedia.org/wiki/COCOMO)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdanielealbano%2Fcachegrand.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdanielealbano%2Fcachegrand?ref=badge_shield)
-[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/danielealbano)
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/mohalicious)
 
 <p align="center">
   <a href="https://cachegrand.io">
