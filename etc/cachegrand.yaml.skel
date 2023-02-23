@@ -1,0 +1,157 @@
+# Set cpu pinning, accepted values:
+# - cpu number, starting from 0 (ie. 0, 1, 2)
+# - cpu range, starting from 0 (ie. 2-12)
+# - all, will use all the available cpus
+cpus:
+  - all
+
+# Suggested 1 worker per cpu, the number of workers that will be started will be n. cpus * threads_per_count
+workers_per_cpus: 1
+
+run_in_foreground: false
+
+pidfile_path: /var/run/cachegrand/cachegrand.pid
+
+# When use_huge_pages is set to true, cachegrand will use them e.g. to reduce TBL misses and use a specialized memory
+# allocator. The various improvements provided help to improve the performance up to 10%.
+# The huge pages in the OS need to be enabled in order to use this functionality, please for more information refer to
+# https://github.com/danielealbano/cachegrand/blob/main/docs/hugepages.md
+use_huge_pages: false
+
+network:
+  backend: io_uring
+  max_clients: 100
+  listen_backlog: 100
+
+modules:
+  - type: redis
+
+    # Redis specific settings
+    redis:
+      # The maximum key length can't be greater than 65536 bytes
+      max_key_length: 8192
+      max_command_length: 536870912
+      max_command_arguments: 10000
+      
+      # If enabled, the command parsing will refuse duplicated or exclusive arguments
+      strict_parsing: false
+
+    network:
+      # Timeouts for the read and write operations in milliseconds, set to -1 to disable or greater than 0 to enable
+      timeout:
+        read_ms: -1
+        write_ms: 10000
+
+#      # Keep-alive parameters to keep the socket connected in case of no activity
+#      keepalive:
+#        time: 0
+#        interval: 0
+#        probes: 0
+
+#      # TLS settings
+#      # If the configuration is missing or commented out, TLS is automatically disabled
+#      # If kTLS is available, it will be automatically enabled.
+#      tls:
+#        # Path to the certificate and private key to use
+#        certificate_path: "/etc/cachegrand/certificate.pem"
+#        private_key_path: "/etc/cachegrand/certificate.key"
+#
+#        # Optional parameters to set the min and max version of the TLS versions accepted:
+#        # - any
+#        # - tls1.0
+#        # - tls1.1
+#        # - tls1.2
+#        # - tls1.3
+#        # When any is selected for min_version, automatically tls1.0 will be used.
+#        min_version: tls1.2
+#        max_version: any
+#
+#        # Optional parameter to set the allowed cipher suites, list the available ones with using
+#        # /path/to/cachegrand-server --list-tls-cipher-suites
+#        # The default list enables the ciphers supported by kTLS to allow the kernel offloading, other cipher suites
+#        # are not supporte by kTLS.
+#        cipher_suites:
+#          - TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384
+#          - TLS-DHE-RSA-WITH-AES-256-GCM-SHA384
+#          - TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
+#          - TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
+#          - TLS-DHE-RSA-WITH-AES-128-CCM
+#          - TLS-DHE-RSA-WITH-AES-128-CCM-8
+#          - TLS-RSA-WITH-AES-256-GCM-SHA384
+#          - TLS-RSA-WITH-AES-128-GCM-SHA256
+#          - TLS-RSA-WITH-AES-128-CCM
+#          - TLS-RSA-WITH-AES-128-CCM-8
+#          - TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
+#          - TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256
+      # Bindings
+      bindings:
+        - host: 0.0.0.0
+          port: 6379
+          # Enable or disable TLS for the binding, optional parameter, if missing defaults to false
+          # tls: false
+        - host: 0.0.0.0
+          port: 6380
+          # To enable tls is necessary to uncomment the tls block above
+          # tls: true
+        - host: "::"
+          port: 6379
+        - host: "::"
+          port: 6380
+          # To enable tls is necessary to uncomment the tls block above
+          # tls: true
+
+# Uncomment to enable prometheus support, more information available at
+# https://github.com/danielealbano/cachegrand/blob/main/docs/architecture/modules/prometheus.md
+#  - type: prometheus
+#    network:
+#      timeout:
+#        read_ms: -1
+#        write_ms: 10000
+#      bindings:
+#        - host: 127.0.0.1
+#          port: 9090
+
+database:
+  # Currently the internal cachegrand hashtable doesn't support the automatic resizing, if there isn't enough room the
+  # SET command will just fail with a generic error.
+  # For performance reason, the max amount of keys is always rounded up to the next power of 2 of max_keys, in this case
+  # 1000000 is rounded up to 1048576
+  max_keys: 1000000
+  backend: memory
+#  backend: file
+#  file:
+#    path: /var/lib/cachegrand
+#    shard_size_mb: 100
+#    max_opened_shards: 1000
+
+# The sentry.io service is used to automatically collect minidumps in case of crashes, it doesn't store them after that
+# they are processed but be aware that minidumps will contain memory regions used by cachegrand and therefore may they
+# may also contain cached data!
+# To avoid accidental/unwanted uploads, it's turned off, if you want to provide crash data
+# without having to attach manually generated coredumps or minidumps to a github issue simply enable sentry.
+sentry:
+  enable: false
+
+# LOGS
+# ---
+# type:     console or file
+# level:    array of flags: debug, verbose, info, warning, recoverable, error
+#           it's possible to negate a flag prefixing it with no- (ie. no-debug), it is also
+#           possible to select all the flags using the keyword all
+#
+# For type file
+# file:
+#   path:   path to the log file
+
+logs:
+  - type: console
+    # Print to the console errors, warnings and informational messages
+    level: [ all, no-verbose, no-debug]
+
+    # or print everything
+    # level: [ all ]
+
+  - type: file
+    level: [ all, no-verbose, no-debug ]
+    file:
+      path: /var/log/cachegrand/cachegrand.log

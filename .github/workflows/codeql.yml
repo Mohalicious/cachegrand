@@ -1,0 +1,87 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: "32 18 * * 6"
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ cpp ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes curl ca-certificates build-essential cmake git pkg-config libmbedtls-dev libnuma1 libnuma-dev libyaml-0-2 libyaml-dev libcurl4-openssl-dev libcurl4 libpcre2-8-0 libpcre2-dev libjson-c-dev lcov gcovr
+
+      - name: Configure
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_HASH_ALGORITHM_T1HA2=1 -DBUILD_TESTS=1 -DBUILD_INTERNAL_BENCHES=1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Build cpp
+        run: |
+          cd build
+          make cachegrand-server
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: false
+          output: sarif-results
+
+      - name: filter-sarif
+        uses: advanced-security/filter-sarif@v1
+        with:
+          patterns: |
+            -**/build/_deps/**/*.c
+            -**/build/_deps/**/*.h
+            -**/build/_deps/**/*.cc
+            -**/build/_deps/**/*.cpp
+            -**/build/_deps/**/*.hpp
+            -**/3rdparty/**/*.c
+            -**/3rdparty/**/*.h
+            -**/3rdparty/**/*.cc
+            -**/3rdparty/**/*.cpp
+            -**/3rdparty/**/*.hpp
+          input: "sarif-results/${{ matrix.language }}.sarif"
+          output: "sarif-results/${{ matrix.language }}.sarif"
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "sarif-results/${{ matrix.language }}.sarif"
+
+      - name: Upload loc as a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sarif-results
+          path: sarif-results
+          retention-days: 7

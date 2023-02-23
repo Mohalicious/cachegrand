@@ -1,0 +1,12 @@
+/**
+ * Copyright (C) 2018-2022 Daniele Salvatore Albano
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms
+ * of the BSD license.  See the LICENSE file for details.
+ **/
+
+#include "cmake_config.h"
+
+const char* CACHEGRAND_CMAKE_CONFIG_VERSION_GIT = "@CACHEGRAND_VERSION_GIT@";
+const char* CACHEGRAND_CMAKE_CONFIG_BUILD_DATE_TIME = "@CACHEGRAND_BUILD_DATE_TIME@";

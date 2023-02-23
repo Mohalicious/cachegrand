@@ -1,0 +1,14 @@
+#ifndef CACHEGRAND_HASHTABLE_SUPPORT_HASH_SEARCH_H
+#define CACHEGRAND_HASHTABLE_SUPPORT_HASH_SEARCH_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define HASHTABLE_MCMP_SUPPORT_HASH_SEARCH_NOT_FOUND     32u
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //CACHEGRAND_HASHTABLE_SUPPORT_HASH_SEARCH_H
